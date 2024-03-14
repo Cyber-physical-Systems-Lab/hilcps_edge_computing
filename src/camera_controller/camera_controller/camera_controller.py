@@ -28,7 +28,7 @@ COLOR_RANGES = {
 }
 
 
-class StartSpaceCameraMock(Node):
+class CameraController(Node):
     def __init__(self, name, topic, cam_fetcher: AbstractViewFetcher):
         super().__init__(name)
         self.camera = cam_fetcher
