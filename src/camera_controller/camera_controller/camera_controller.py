@@ -40,7 +40,6 @@ class StartSpaceCameraMock(Node):
         self.camera = cam_fetcher
         self.current_state = SpaceState.EMPTY
         self.cmd_vel_pub_ = self.create_publisher(SpaceState, topic, 10) #Give type and topic name and queue size
-        self.timer = self.create_timer(0.5, self.send_startspace_state)
         self.state_changer = self.create_timer(2, self.measure_board_state)
         self.get_logger().info(name + ": Camera started transmitting")
         
@@ -95,9 +94,24 @@ class StartSpaceCameraMock(Node):
         return matching_pixels > 1000
 
     
+    def fetch_image(self):
+        try:
+            return self.camera.fetch_image()
+        except Exception as e:
+            self.get_logger().error(str(e))
+            self.get_logger().warn("Mocked image sent!")
+            return cv2.imread("resource/cardboard_mock.jpg")
+
+    def send_startspace_state(self):
+        msg = SpaceState()
+        msg.state = self.current_state
+
+        self.cmd_vel_pub_.publish(msg)
+        self.get_logger().info(f"State message published: {str(msg)}")
+
     def measure_board_state(self):
+        image = self.fetch_image()
         self.get_logger().info("Next image received")
-        image = self.camera.fetch_image()
         #cv2.imshow("Rectangles", image) 
         results = []
         try:
@@ -123,17 +137,14 @@ class StartSpaceCameraMock(Node):
         else:
             self.current_state = SpaceState.ITEMPLACED              
 
-    def send_startspace_state(self):
-        msg = SpaceState()
-        msg.state = self.current_state
+        self.send_startspace_state()
 
-        self.cmd_vel_pub_.publish(msg)
-        self.get_logger().info(f"State message published: {str(msg)}")
-
+    
 def main(args = None):
     rclpy.init(args=args)
 
     camera = IPServerViewFetcher(URL)
+    # TODO other cameras need other topic names, states are the same!
     camera_node = StartSpaceCameraMock("startCamera", STARTSPACE_TOPIC, camera)
     rclpy.spin(camera_node)
     rclpy.shutdown()

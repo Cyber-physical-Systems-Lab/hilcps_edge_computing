@@ -11,7 +11,7 @@ class IPServerViewFetcher(AbstractViewFetcher):
         super().__init__()
 
     def fetch_image(self):
-        img_resp = requests.get(self.url)
+        img_resp = requests.get(url=self.url, timeout=2)
         img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8) 
         img = cv2.imdecode(img_arr, -1)
         image = imutils.resize(img, width=1000, height=1800)  

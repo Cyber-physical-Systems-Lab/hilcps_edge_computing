@@ -4,6 +4,7 @@ __pycache__/
 # Ignore logs
 *.log
 
+.vscode/
 # Ignore ros2 generated directories
 build/
 log/
