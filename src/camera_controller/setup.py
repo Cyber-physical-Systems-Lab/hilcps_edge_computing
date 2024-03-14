@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "camera_controller = camera_controller.camera_controller:main"
+            "ip_server_startspace_camera_controller = camera_controller.__init__:start_ip_server_camera",
+            "mock_startspace_camera_controller = camera_controller.__init__:start_mock_camera"
         ],
     },
 )

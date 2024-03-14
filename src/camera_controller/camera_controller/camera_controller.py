@@ -1,6 +1,4 @@
 from camera_controller.abstract_view_fetcher import AbstractViewFetcher
-from camera_controller.ip_server_view_fetcher import IPServerViewFetcher
-import rclpy
 from rclpy.node import Node
 from interfaces.msg import SpaceState
 import cv2
@@ -138,16 +136,3 @@ class StartSpaceCameraMock(Node):
             self.current_state = SpaceState.ITEMPLACED              
 
         self.send_startspace_state()
-
-    
-def main(args = None):
-    rclpy.init(args=args)
-
-    camera = IPServerViewFetcher(URL)
-    # TODO other cameras need other topic names, states are the same!
-    camera_node = StartSpaceCameraMock("startCamera", STARTSPACE_TOPIC, camera)
-    rclpy.spin(camera_node)
-    rclpy.shutdown()
-
-if __name__=="__main__":
-    main()
