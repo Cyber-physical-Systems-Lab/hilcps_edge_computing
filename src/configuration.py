@@ -1,0 +1,1 @@
+STARTSPACE_TOPIC = "/spinningfactory/startspace_state"

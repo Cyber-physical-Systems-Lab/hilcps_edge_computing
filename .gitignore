@@ -1,0 +1,18 @@
+# Ignore Python cache directories
+__pycache__/
+
+# Ignore logs
+*.log
+
+# Ignore ros2 generated directories
+build/
+log/
+install/
+
+
+dist/
+*.egg-info/
+
+# Ignore install directories
+venv/
+
