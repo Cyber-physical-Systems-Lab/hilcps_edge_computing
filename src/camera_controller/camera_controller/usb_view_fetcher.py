@@ -1,7 +1,5 @@
 import imutils
-import numpy as np
-import cv2
-from cv2 import VideoCapture, imshow
+from cv2 import VideoCapture
 from camera_controller.abstract_view_fetcher import AbstractViewFetcher
 
 
