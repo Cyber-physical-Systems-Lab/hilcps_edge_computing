@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "mycobot_controller = mycobot280_pi_controller.playground:main"
+            "mycobot_controller = mycobot280_pi_controller.__init__:start_controller",
+            "mock_mycobot_controller = mycobot280_pi_controller.__init__:start_mock_controller"
         ],
     },
 )
