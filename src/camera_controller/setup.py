@@ -21,7 +21,8 @@ setup(
     entry_points={
         'console_scripts': [
             "ip_server_startspace_camera_controller = camera_controller.__init__:start_ip_server_camera",
-            "mock_startspace_camera_controller = camera_controller.__init__:start_mock_camera"
+            "mock_startspace_camera_controller = camera_controller.__init__:start_mock_camera",
+            "usb_startspace_camera_controller = camera_controller.__init__:start_usb_camera"
         ],
     },
 )

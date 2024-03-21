@@ -52,6 +52,7 @@ class CameraController(Node):
 
         if not right_qr_code_found:
             self.get_logger().warn(self.get_name() + ": space not found.")
+            #cv2.imshow("error", image)
             return  # TODO error here
 
         blurred = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -76,7 +77,7 @@ class CameraController(Node):
 
         return max(rects, key=cv2.contourArea)
 
-    def _contains_color(image, contour, lower_boundary, upper_boundary):
+    def _contains_color(self, image, contour, lower_boundary, upper_boundary):
         # mask image by contour
         mask = np.zeros(image.shape[:2], dtype=np.uint8)
         cv2.drawContours(mask, [contour], -1, 255, thickness=cv2.FILLED)
@@ -109,7 +110,6 @@ class CameraController(Node):
     def measure_board_state(self):
         image = self.fetch_image()
         self.get_logger().info("Next image received")
-        # cv2.imshow("Rectangles", image)
         results = []
         try:
             largest_rect = self._find_work_area(image)
@@ -129,7 +129,7 @@ class CameraController(Node):
                     self.get_logger().info(f"{color} included: {included}")
 
         except Exception as e:
-            self.get_logger().warn("Area not found.")
+            self.get_logger().error(str(e))
             results = "error"
 
         if results == "error":
