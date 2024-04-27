@@ -8,5 +8,5 @@ class MockViewFetcher(AbstractViewFetcher):
         super().__init__()
 
     def fetch_image(self):
-        random_number = random.randint(1, 5)
-        return cv2.imread(f"resource/cardboard_image{random_number}.jpg")
+        random_number =  random.randint(1, 5)
+        return cv2.imread(f"/home/szogabaha/src/uu/thesis/software/hilcps_edge_computing/resource/cardboard_image{random_number}.jpg")

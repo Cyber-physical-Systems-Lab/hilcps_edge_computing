@@ -20,9 +20,13 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "ip_server_startspace_camera_controller = camera_controller.__init__:start_ip_server_camera",
-            "mock_startspace_camera_controller = camera_controller.__init__:start_mock_camera",
-            "usb_startspace_camera_controller = camera_controller.__init__:start_usb_camera"
+            "startspace_ip_server_camera_controller = camera_controller.__init__:start_ip_server_camera",
+            "startspace_mock_camera_controller = camera_controller.__init__:start_mock_camera",
+            "startspace_usb_camera_controller = camera_controller.__init__:start_usb_camera",
+            "workspace_ip_server_camera_controller = camera_controller.__init__:work_ip_server_camera",
+            "workspace_mock_camera_controller = camera_controller.__init__:work_mock_camera",
+            "workspace_usb_camera_controller = camera_controller.__init__:work_usb_camera",
+            "startspace_hand_camera = camera_controller.__init__:start_hand_recognition_camera"
         ],
     },
 )

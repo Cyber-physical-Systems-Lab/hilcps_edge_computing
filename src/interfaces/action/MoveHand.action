@@ -1,0 +1,8 @@
+
+# message that determines wether a given space
+# contains an item.
+
+---
+bool finished
+---
+bool in_motion
