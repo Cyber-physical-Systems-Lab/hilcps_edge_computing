@@ -10,16 +10,25 @@ import threading
 from rclpy.action import ActionClient
 from interfaces.action import MoveHand
 from interfaces.msg import SpaceState
+from std_msgs.msg import Bool
 
 
 OFFLINE = "Offline"
+STARTSPACE = "/spinningfactory/startspace_state"
+WORKSPACE = "/spinningfactory/workspace_state"
+HAND_SUFFIX = "_hand"
+
 rhand_state = OFFLINE
 startspace_state = OFFLINE
 workspace_state = OFFLINE
+startspace_hand = OFFLINE
+workspace_hand = OFFLINE
 
 rhand_lock = threading.Lock()
 startspace_lock = threading.Lock()
 workspace_lock = threading.Lock()
+startspace_hand_lock = threading.Lock()
+workspace_hand_lock = threading.Lock()
 
 class MySubscriber(Node):
     
@@ -36,10 +45,17 @@ class MySubscriber(Node):
 
         self.space_states = {
             0: "EMPTY",
-            1: "ITEM PLACED",
-            2: "ERROR"
+            1: "BLUE PLACED",
+            2: "RED PLACED",
+            3: "BLUE AND RED PLACED",
+            4: "ERROR"
         }
     
+        self.hand_states = {
+            False: "NO HUMAN",
+            True: "HUMAN INTERACTION"
+        }
+
         self.rhand_subscription = self.create_subscription(
             UInt8,
             '/spinningfactory/mycobotstate',
@@ -49,17 +65,32 @@ class MySubscriber(Node):
 
         self.startspace_subscription = self.create_subscription(
             SpaceState,
-            '/spinningfactory/startspace_state',
+            STARTSPACE,
             self.startspace_on_receive,
             10
         )
 
         self.workspace_subscription = self.create_subscription(
             SpaceState,
-            '/spinningfactory/workspace_state',
+            WORKSPACE,
             self.workspace_on_receive,
             10
         )
+
+        self.startspace_hand_subscription = self.create_subscription(
+            Bool,
+            STARTSPACE + HAND_SUFFIX,
+            self.startspace_hand_on_receive,
+            10
+        )
+
+        self.workspace_hand_subscription = self.create_subscription(
+            Bool,
+            WORKSPACE + HAND_SUFFIX,
+            self.workspace_hand_on_receive,
+            10
+        )
+
         # Timer to trigger timeout function
         self.timeout_threshold = 5.0
         self.rhand_timer = self.create_timer(self.timeout_threshold, self.rhand_timeout)
@@ -90,6 +121,18 @@ class MySubscriber(Node):
         with workspace_lock:
             workspace_state = f"{self.space_states[msg.state]} ({msg.state})"
 
+    def startspace_hand_on_receive(self, msg):
+        self.startspace_timer.reset()
+        global startspace_hand
+        with startspace_hand_lock:
+            startspace_hand = f"{self.hand_states[msg.data]} ({msg.data})"
+
+
+    def workspace_hand_on_receive(self, msg):
+        self.workspace_timer.reset()
+        global workspace_hand
+        with workspace_hand_lock:
+            workspace_hand = f"{self.hand_states[msg.data]} ({msg.data})"
 
     def rhand_timeout(self):
         self.get_logger().warn(f'RHAND: No message received for {self.timeout_threshold} seconds!')
@@ -100,14 +143,18 @@ class MySubscriber(Node):
     def startspace_timeout(self):
         self.get_logger().warn(f'STARTSPACE: No message received for {self.timeout_threshold} seconds!')
         global startspace_state
+        global startspace_hand
         with startspace_lock:
             startspace_state = OFFLINE
+            startspace_hand = OFFLINE
 
     def workspace_timeout(self):
         self.get_logger().warn(f'WORKSPACE: No message received for {self.timeout_threshold} seconds!')
         global workspace_state
+        global workspace_hand
         with workspace_lock:
             workspace_state = OFFLINE
+            workspace_hand = OFFLINE
 
     def trigger_startspace_action(self):
         self.startspace_client.wait_for_server()
@@ -175,20 +222,31 @@ def setup_dashboard(node: MySubscriber):
         dbc.Col([
             # Robotic hand state
             html.Div([
-                html.H3("Robotic hand state"),
+                html.H3("Robotic hand state", style={'color': 'black'}),
                 html.Div(id='update_rhand', children=rhand_state, style={'backgroundColor': '#f2f2f2'})
             ], style={'marginBottom': '20px'}),  # Add margin bottom
 
             # StartSpace state
             html.Div([
-                html.H3("StartSpace state"),
+                html.H3("StartSpace"),
                 html.Div(id='update_startspace', children=startspace_state, style={'backgroundColor': '#f2f2f2'})
+            ], style={'marginBottom': '10px'}),  # Add margin bottom
+
+            # StartSpace hand
+            html.Div([
+                html.H3("StartSpace hand"),
+                html.Div(id='update_startspace_hand', children=startspace_state, style={'backgroundColor': '#f2f2f2'})
             ], style={'marginBottom': '20px'}),  # Add margin bottom
 
             # WorkSpace state
             html.Div([
-                html.H3("WorkSpace state"),
+                html.H3("WorkSpace", style={'color': 'darkred'}),
                 html.Div(id='update_workspace', children=workspace_state, style={'backgroundColor': '#f2f2f2'})
+            ], style={'marginBottom': '10px'}),  # Add margin bottom
+
+            html.Div([
+                html.H3("WorkSpace hand", style={'color': 'darkred'}),
+                html.Div(id='update_workspace_hand', children=workspace_state, style={'backgroundColor': '#f2f2f2'})
             ], style={'marginBottom': '20px'})  # Add margin bottom
         ], width=3)  # 3/4 width of the page
     ]),
@@ -229,17 +287,32 @@ def setup_dashboard(node: MySubscriber):
     
     @app.callback(
         Output('update_startspace', 'children'),
-        [Input('interval-component', 'n_intervals')]  # This input is just a dummy input to trigger the callback periodically
+        [Input('interval-component', 'n_intervals')] 
     )
     def update_startspace_state(n_intervals):
         return startspace_state
     
     @app.callback(
         Output('update_workspace', 'children'),
-        [Input('interval-component', 'n_intervals')]  # This input is just a dummy input to trigger the callback periodically
+        [Input('interval-component', 'n_intervals')] 
     )
     def update_workspace_state(n_intervals):
         return workspace_state
+    
+    @app.callback(
+        Output('update_startspace_hand', 'children'),
+        [Input('interval-component', 'n_intervals')] 
+    )
+    def update_startspace_hand(n_intervals):
+        return startspace_hand
+    
+    @app.callback(
+        Output('update_workspace_hand', 'children'),
+        [Input('interval-component', 'n_intervals')] 
+    )
+
+    def update_workspace_hand(n_intervals):
+        return workspace_hand
     
     # Callback functions for Dash buttons
     @app.callback(

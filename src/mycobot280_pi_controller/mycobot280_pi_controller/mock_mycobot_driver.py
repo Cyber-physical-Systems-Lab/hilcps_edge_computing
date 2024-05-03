@@ -1,9 +1,9 @@
 import time
 from interfaces.action import MoveHand
-from mycobot280_pi_controller.abstract_mycobot_controller_v2 import AbstractMyCobotController, MyCobotState
+from mycobot280_pi_controller.mycobot280_pi_controller.abstract_mycobot_driver import AbstractMyCobotDriver, MyCobotState
 import threading
 
-class MockMyCobotController(AbstractMyCobotController):
+class MockMyCobotDriver(AbstractMyCobotDriver):
 
     
 

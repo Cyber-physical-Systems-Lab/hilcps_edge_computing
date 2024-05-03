@@ -9,4 +9,4 @@ class MockViewFetcher(AbstractViewFetcher):
 
     def fetch_image(self):
         random_number =  random.randint(1, 5)
-        return cv2.imread(f"/home/szogabaha/src/uu/thesis/software/hilcps_edge_computing/resource/cardboard_image{random_number}.jpg")
+        return self._resize(cv2.imread(f"/home/szogabaha/src/uu/thesis/software/hilcps_edge_computing/resource/cardboard_image{random_number}.jpg"))

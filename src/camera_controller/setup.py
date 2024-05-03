@@ -25,8 +25,7 @@ setup(
             "startspace_usb_camera_controller = camera_controller.__init__:start_usb_camera",
             "workspace_ip_server_camera_controller = camera_controller.__init__:work_ip_server_camera",
             "workspace_mock_camera_controller = camera_controller.__init__:work_mock_camera",
-            "workspace_usb_camera_controller = camera_controller.__init__:work_usb_camera",
-            "startspace_hand_camera = camera_controller.__init__:start_hand_recognition_camera"
+            "workspace_usb_camera_controller = camera_controller.__init__:work_usb_camera"
         ],
     },
 )

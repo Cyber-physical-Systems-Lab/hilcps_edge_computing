@@ -12,7 +12,7 @@ class MyCobotState(Enum):
     HANDLEWORK = 2
     BACKING = 3
 
-class AbstractMyCobotController(Node):
+class AbstractMyCobotDriver(Node):
     def __init__(self, name):
         super().__init__(name)
     
