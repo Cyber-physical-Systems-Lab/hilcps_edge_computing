@@ -7,6 +7,7 @@ import numpy as np
 from std_msgs.msg import Bool
 from pyzbar.pyzbar import decode
 import time
+import threading
 
 HAND_RECOGNITION_TOPIC_SUFFIX = "_hand"
 COLOR_RANGES = {
@@ -36,7 +37,7 @@ class CameraDriver(Node):
 
         self.spacestate_publisher = self.create_publisher(SpaceState, area, 10) # type, topic name, queue size
         self.hand_recognition_publisher = self.create_publisher(Bool, area + HAND_RECOGNITION_TOPIC_SUFFIX, 10)
-        self.state_changer = self.create_timer(0.5, self.measure_board_state)
+        self.state_changer = self.create_timer(0.1, self.measure_board_state)
         self.get_logger().info(name + ": Camera started transmitting")
 
     # Publishers
@@ -143,6 +144,7 @@ class CameraDriver(Node):
             return cv2.imread("resource/cardboard_mock.jpg")
 
     def measure_board_state(self):
+        #self.get_logger().info(f"{threading.get_ident()}")
         #self.get_logger().info(f"{time.time_ns()}")
         image = self.fetch_image()
 

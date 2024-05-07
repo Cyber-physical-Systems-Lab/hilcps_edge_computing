@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'mycobot280_pi_controller'
+package_name = 'actuators'
 
 setup(
     name=package_name,
@@ -20,8 +20,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "mycobot_controller = mycobot280_pi_controller.__init__:start_controller",
-            "mock_mycobot_driver = mycobot280_pi_controller.__init__:start_mock_driver"
+            "mycobot_driver = actuators.__init__:start_driver",
+            "mock_mycobot_driver = actuators.__init__:start_mock_driver",
+            "hil_driver = actuators.__init__:start_hil_driver",
         ],
     },
 )

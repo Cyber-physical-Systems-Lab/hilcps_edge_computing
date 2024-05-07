@@ -9,13 +9,14 @@ from rclpy.callback_groups import MutuallyExclusiveCallbackGroup, ReentrantCallb
 class MyCobotState(Enum):
     IDLE = 0
     HANDLESTART = 1
-    HANDLEWORK = 2
-    BACKING = 3
+    HANDLESTARTTOEND = 2
+    HANDLEWORK = 3
+    BACKING = 4
 
 class AbstractMyCobotDriver(Node):
-    def __init__(self, name):
+    def __init__(self, name, mc):
         super().__init__(name)
-    
+        self.mc = mc
         self.action_cb_group = MutuallyExclusiveCallbackGroup()
         self.publisher_cb_group = ReentrantCallbackGroup()
         self._action_server = ActionServer(
@@ -23,6 +24,14 @@ class AbstractMyCobotDriver(Node):
             MoveHand,
             'handleStartSpace',
             self.execute_handle_startspace,
+            callback_group=self.action_cb_group
+        )
+
+        self._action_server = ActionServer(
+            self,
+            MoveHand,
+            'handleStartToEndSpace',
+            self.execute_handle_start_to_endspace,
             callback_group=self.action_cb_group
         )
 
@@ -53,6 +62,10 @@ class AbstractMyCobotDriver(Node):
         self.get_logger().info(str(goal_handle) + "action received, aproaching startspace")
         self.current_task = MyCobotState.HANDLESTART
 
+    def execute_handle_start_to_endspace(self, goal_handle):
+        self.get_logger().info(str(goal_handle) + "action received, aproaching startspace")
+        self.current_task = MyCobotState.HANDLESTARTTOEND
+    
     def execute_handle_workspace(self, goal_handle):
         self.get_logger().info(str(goal_handle) + "action received, aproaching workspace")
         self.current_task = MyCobotState.HANDLEWORK
@@ -60,7 +73,7 @@ class AbstractMyCobotDriver(Node):
     def execute_handle_return(self, goal_handle):
         self.get_logger().info(str(goal_handle) + "action received, returning")
         self.current_task = MyCobotState.BACKING
-
+ 
     def publish_state(self):
             msg = UInt8()
             msg.data = self.current_task.value

@@ -39,8 +39,9 @@ class MySubscriber(Node):
         self.mycobot_states = {
             0 : "IDLE",
             1 : "HANDLE STARTSPACE",
-            2 : "HANDLE WORKSPACE",
-            3 : "BACKING"
+            2 : "HANDLE START TO END",
+            3 : "HANDLE WORKSPACE",
+            4 : "BACKING"
         }
 
         self.space_states = {
@@ -67,28 +68,28 @@ class MySubscriber(Node):
             SpaceState,
             STARTSPACE,
             self.startspace_on_receive,
-            10
+            1
         )
 
         self.workspace_subscription = self.create_subscription(
             SpaceState,
             WORKSPACE,
             self.workspace_on_receive,
-            10
+            1
         )
 
         self.startspace_hand_subscription = self.create_subscription(
             Bool,
             STARTSPACE + HAND_SUFFIX,
             self.startspace_hand_on_receive,
-            10
+            1
         )
 
         self.workspace_hand_subscription = self.create_subscription(
             Bool,
             WORKSPACE + HAND_SUFFIX,
             self.workspace_hand_on_receive,
-            10
+            1
         )
 
         # Timer to trigger timeout function
@@ -100,6 +101,7 @@ class MySubscriber(Node):
         # Actions
         self.startspace_client = ActionClient(self, MoveHand, 'handleStartSpace')
         self.workspace_client = ActionClient(self, MoveHand, 'handleWorkSpace')
+        self.startend_client = ActionClient(self, MoveHand, 'handleStartToEndSpace')
         self.backoff_client = ActionClient(self, MoveHand, 'handleReturnToInit')
 
     def robotstate_on_receive(self, msg):
@@ -168,6 +170,13 @@ class MySubscriber(Node):
         # Send goal to handleWorkSpace action server
         future = self.workspace_client.send_goal_async(goal_msg)
     
+    def trigger_start_to_end_action(self):
+        self.startend_client.wait_for_server()
+        goal_msg = MoveHand.Goal()
+        # Send goal to handleWorkSpace action server
+        future = self.startend_client.send_goal_async(goal_msg)
+    
+
     def trigger_backoff_action(self):
         self.backoff_client.wait_for_server()
         goal_msg = MoveHand.Goal()
@@ -199,7 +208,7 @@ def setup_dashboard(node: MySubscriber):
     
     
     # Incorporate data
-    df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/gapminder2007.csv')
+    #df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/gapminder2007.csv')
 
     external_stylesheets = [dbc.themes.CERULEAN]
     app = Dash(__name__, external_stylesheets=external_stylesheets)
@@ -213,11 +222,11 @@ def setup_dashboard(node: MySubscriber):
 
         # Graph and state indicators
         dbc.Row([
-        dbc.Col(dash_table.DataTable(
-            data=df.to_dict('records'),
-            page_size=12,
-            style_table={'overflowX': 'auto'}
-        )),  # 1/4 width of the page
+        #dbc.Col(dash_table.DataTable(
+        #    data=df.to_dict('records'),
+        #    page_size=12,
+        #    style_table={'overflowX': 'auto'}
+        #)),  # 1/4 width of the page
 
         dbc.Col([
             # Robotic hand state
@@ -253,10 +262,11 @@ def setup_dashboard(node: MySubscriber):
 
         # DF and buttons
         dbc.Row([
-            dbc.Col([dash_table.DataTable(data=df.to_dict('records'), page_size=12, style_table={'overflowX': 'auto'})]),
+            #dbc.Col([dash_table.DataTable(data=df.to_dict('records'), page_size=12, style_table={'overflowX': 'auto'})]),
             dbc.Col([
-                    html.Button("Move from Startspace", id="btn-startspace", className="mr-2 mb-2 d-block"),
-                    html.Button("Move from Workspace", id="btn-workspace", className="mr-2 mb-2 d-block"),
+                    html.Button("Handle new item", id="btn-startspace", className="mr-2 mb-2 d-block"),
+                    html.Button("Handle new assembled item", id="btn-startend", className="mr-2 mb-2 d-block"),
+                    html.Button("Handle workspace assembled item", id="btn-workspace", className="mr-2 mb-2 d-block"),
                     html.Button("Back Off", id="btn-backoff", className="mr-2 mb-2 d-block"),
                     dbc.Row([
                         dbc.Col([
@@ -275,6 +285,7 @@ def setup_dashboard(node: MySubscriber):
         html.Div(id="hidden-div1", style={"display":"none"}),
         html.Div(id="hidden-div2", style={"display":"none"}),
         html.Div(id="hidden-div3", style={"display":"none"}),
+        html.Div(id="hidden-div4", style={"display":"none"}),
 
 
     ], fluid=True)
@@ -333,6 +344,14 @@ def setup_dashboard(node: MySubscriber):
 
     @app.callback(
         Output('hidden-div3', 'children'),
+        [Input('btn-startend', 'n_clicks')]
+    )
+    def workspace_callback(n_clicks):
+        node.trigger_start_to_end_action()
+        return ""
+
+    @app.callback(
+        Output('hidden-div4', 'children'),
         [Input('btn-backoff', 'n_clicks')]
     )
     def backoff_callback(n_clicks):

@@ -27,9 +27,11 @@ def start_ip_server_camera(args=None):
 
 def start_usb_camera(args=None):
     rclpy.init(args=args)
-    camera = USBViewFetcher(cam_port=4)
+    camera = USBViewFetcher(cam_port=2)
     camera_node = CameraDriver("startspace_USB", STARTSPACE_TOPIC, camera)
-    rclpy.spin(camera_node)
+    executor = MultiThreadedExecutor()
+    executor.add_node(camera_node)
+    executor.spin()
     rclpy.shutdown()
 
 def work_mock_camera(args=None):
@@ -49,7 +51,7 @@ def work_ip_server_camera(args=None):
 
 def work_usb_camera(args=None):
     rclpy.init(args=args)
-    camera = USBViewFetcher(cam_port=0)
+    camera = USBViewFetcher(cam_port=2)
     camera_node = CameraDriver("workspace_USB", WORKSPACE_TOPIC, camera)
     rclpy.spin(camera_node)
     rclpy.shutdown()

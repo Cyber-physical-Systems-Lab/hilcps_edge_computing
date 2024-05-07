@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'factory_controller = controllers.__init__:start_mycobot_hil_controller'
         ],
     },
 )
