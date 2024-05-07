@@ -87,7 +87,7 @@ class MyCobotHiLController(Node):
             SpaceState,
             STARTSPACE,
             self.startspace_on_receive,
-            10
+            1
         )
 
         self.workspace_subscription = self.create_subscription(
@@ -127,11 +127,12 @@ class MyCobotHiLController(Node):
 
 
     def startspace_on_receive(self, msg):
-        self.get_logger().info(f"STARTSPACE\tPID {threading.get_ident()}\tTIMESTAMP {time.time_ns()}")
+        self.get_logger().info(f"STARTSPACE\tPID {threading.get_ident()}\tUID {msg.unique_id}\tTIMESTAMP {time.time_ns()}")
         # if robot or human interaction is happening at the space, don't update
-        if self.actuator_control["mycobot"] != self.mycobot_states[1]\
+        if self.actuator_control["mycobot"] == self.mycobot_states[1]\
         or self.startspace_control["hil_state"]:
-            return
+            pass
+            #return
         
         # increase until capped
         if self.startspace_control["state"] == self.space_states[msg.state]\
@@ -145,6 +146,7 @@ class MyCobotHiLController(Node):
             if self.startspace_control["cnt"] < 0:
                 self.startspace_control["cnt"] = UPPER_TRESHOLD
                 self.startspace_control["state"] = self.space_states[msg.state]
+
             
     def workspace_on_receive(self, msg):
         self.get_logger().info(f"WORKSPACE\tPID {threading.get_ident()}\tTIMESTAMP {time.time_ns()}")

@@ -7,6 +7,7 @@ import numpy as np
 from std_msgs.msg import Bool
 from pyzbar.pyzbar import decode
 import time
+import uuid
 import threading
 
 HAND_RECOGNITION_TOPIC_SUFFIX = "_hand"
@@ -37,13 +38,16 @@ class CameraDriver(Node):
 
         self.spacestate_publisher = self.create_publisher(SpaceState, area, 10) # type, topic name, queue size
         self.hand_recognition_publisher = self.create_publisher(Bool, area + HAND_RECOGNITION_TOPIC_SUFFIX, 10)
-        self.state_changer = self.create_timer(0.2, self.measure_board_state)
+        self.state_changer = self.create_timer(0.01, self.measure_board_state)
         self.get_logger().info(name + ": Camera started transmitting")
 
     # Publishers
     def send_startspace_state(self):
         msg = SpaceState()
         msg.state = self.current_state
+        uid = uuid.uuid4()
+        msg.unique_id = str(uid)
+        self.get_logger().info(f"FINISH\tPID {threading.get_ident()}\tUID {uid}\tTIMESTAMP {time.time_ns()}")
 
         self.spacestate_publisher.publish(msg)
         #self.get_logger().info(f"State message published: {str(msg)}")
@@ -190,5 +194,5 @@ class CameraDriver(Node):
             self.current_state = SpaceState.BOTHPLACED
         
         self.send_startspace_state()
-        self.get_logger().info(f"FINISH\tPID {threading.get_ident()}\tTIMESTAMP {time.time_ns()}")
+        
         

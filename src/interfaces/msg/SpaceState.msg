@@ -8,3 +8,4 @@ uint8 REDPLACED=2
 uint8 BOTHPLACED = 3
 uint8 ERROR=4
 uint8 state
+string unique_id
