@@ -8,6 +8,8 @@ from interfaces.action import MoveHand
 from interfaces.msg import SpaceState
 from std_msgs.msg import Bool
 import json
+import time
+import threading
 
 
 OFFLINE = "Offline"
@@ -119,12 +121,13 @@ class MyCobotHiLController(Node):
         workspace_control_str = json.dumps(self.workspace_control)
         rhand_control_str = json.dumps(self.actuator_control)
 
-        self.get_logger().info("startspace: " + startspace_control_str)
+        # self.get_logger().info("startspace: " + startspace_control_str)
         #self.get_logger().info("workspace: " + workspace_control_str)
         #self.get_logger().info("rhand: " + rhand_control_str)
 
 
     def startspace_on_receive(self, msg):
+        self.get_logger().info(f"STARTSPACE\tPID {threading.get_ident()}\tTIMESTAMP {time.time_ns()}")
         # if robot or human interaction is happening at the space, don't update
         if self.actuator_control["mycobot"] != self.mycobot_states[1]\
         or self.startspace_control["hil_state"]:
@@ -144,6 +147,7 @@ class MyCobotHiLController(Node):
                 self.startspace_control["state"] = self.space_states[msg.state]
             
     def workspace_on_receive(self, msg):
+        self.get_logger().info(f"WORKSPACE\tPID {threading.get_ident()}\tTIMESTAMP {time.time_ns()}")
         # if robot or human interaction is happening at the space, don't update
         if self.actuator_control["mycobot"] != self.mycobot_states[1]\
         or self.workspace_control["hil_state"]:
@@ -186,9 +190,11 @@ class MyCobotHiLController(Node):
 
 
     def startspace_hand_on_receive(self, msg):
+        self.get_logger().info(f"STARTSPACEHAND\tPID {threading.get_ident()}\tTIMESTAMP {time.time_ns()}")
         self.startspace_control["hil_state"] = msg.data
 
     def workspace_hand_on_receive(self, msg):
+        self.get_logger().info(f"WORKSPACEHAND\tPID {threading.get_ident()}\tTIMESTAMP {time.time_ns()}")
         self.workspace_control["hil_state"] = msg.data    
 
     def trigger_startspace_action(self):
