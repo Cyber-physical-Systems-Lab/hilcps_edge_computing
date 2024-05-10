@@ -3,14 +3,13 @@ from interfaces.action import MoveHand
 from rclpy.node import Node
 from rclpy.action import ActionServer
 from enum import Enum
-from rclpy.callback_groups import MutuallyExclusiveCallbackGroup, ReentrantCallbackGroup
 from std_msgs.msg import Bool
 
 STARTSPACE = "/spinningfactory/startspace_state"
 WORKSPACE = "/spinningfactory/workspace_state"
 HAND_SUFFIX = "_hand"
 
-ACTION_TRESHOLD = 5
+ACTION_TRESHOLD = 10
 
 class HILSTATE(Enum):
     IDLE = 0

@@ -4,7 +4,7 @@ from rclpy.node import Node
 from rclpy.action import ActionServer
 from enum import Enum
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup, ReentrantCallbackGroup
-
+import threading
 
 class MyCobotState(Enum):
     IDLE = 0
@@ -16,6 +16,7 @@ class MyCobotState(Enum):
 class AbstractMyCobotDriver(Node):
     def __init__(self, name, mc):
         super().__init__(name)
+        self.rhand_lock = threading.Lock()
         self.mc = mc
         self.action_cb_group = MutuallyExclusiveCallbackGroup()
         self.publisher_cb_group = ReentrantCallbackGroup()
@@ -59,20 +60,24 @@ class AbstractMyCobotDriver(Node):
         
 
     def execute_handle_startspace(self, goal_handle):
-        self.get_logger().info(str(goal_handle) + "action received, aproaching startspace")
-        self.current_task = MyCobotState.HANDLESTART
+        with self.rhand_lock:
+            self.get_logger().info(str(goal_handle) + "action received, aproaching startspace")
+            self.current_task = MyCobotState.HANDLESTART
 
     def execute_handle_start_to_endspace(self, goal_handle):
-        self.get_logger().info(str(goal_handle) + "action received, aproaching startspace")
-        self.current_task = MyCobotState.HANDLESTARTTOEND
+        with self.rhand_lock:
+            self.get_logger().info(str(goal_handle) + "action received, aproaching startspace")
+            self.current_task = MyCobotState.HANDLESTARTTOEND
     
     def execute_handle_workspace(self, goal_handle):
-        self.get_logger().info(str(goal_handle) + "action received, aproaching workspace")
-        self.current_task = MyCobotState.HANDLEWORK
+        with self.rhand_lock:
+            self.get_logger().info(str(goal_handle) + "action received, aproaching workspace")
+            self.current_task = MyCobotState.HANDLEWORK
 
     def execute_handle_return(self, goal_handle):
-        self.get_logger().info(str(goal_handle) + "action received, returning")
-        self.current_task = MyCobotState.BACKING
+        with self.rhand_lock:
+            self.get_logger().info(str(goal_handle) + "action received, returning")
+            self.current_task = MyCobotState.BACKING
  
     def publish_state(self):
             msg = UInt8()
