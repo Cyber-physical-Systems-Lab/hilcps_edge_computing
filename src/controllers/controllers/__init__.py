@@ -7,8 +7,10 @@ import sys
 def start_mycobot_hil_controller(args=None):
     rclpy.init(args=args)
     node = MyCobotHiLController()
+    executor = MultiThreadedExecutor()
+    executor.add_node(node)
     signal(SIGINT, signal_handler)
-    rclpy.spin(node)
+    executor.spin()
     rclpy.shutdown()
 
 def signal_handler(sig, frame):

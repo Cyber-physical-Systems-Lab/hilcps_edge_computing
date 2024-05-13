@@ -38,14 +38,13 @@ class CameraDriver(Node):
 
         self.spacestate_publisher = self.create_publisher(SpaceState, area, 10) # type, topic name, queue size
         self.hand_recognition_publisher = self.create_publisher(Bool, area + HAND_RECOGNITION_TOPIC_SUFFIX, 10)
-        self.state_changer = self.create_timer(0.01, self.measure_board_state)
-        self.get_logger().info(name + ": Camera started transmitting")
+        self.state_changer = self.create_timer(0.1, self.measure_board_state)
+        #self.get_logger().info(name + ": Camera started transmitting")
 
     # Publishers
-    def send_startspace_state(self):
+    def send_startspace_state(self, uid):
         msg = SpaceState()
         msg.state = self.current_state
-        uid = uuid.uuid4()
         msg.unique_id = str(uid)
         self.get_logger().info(f"FINISH\tPID {threading.get_ident()}\tUID {uid}\tTIMESTAMP {time.time_ns()}")
 
@@ -148,15 +147,15 @@ class CameraDriver(Node):
             return cv2.imread("resource/cardboard_mock.jpg")
 
     def measure_board_state(self):
-        
-        self.get_logger().info(f"START\tPID {threading.get_ident()}\tTIMESTAMP {time.time_ns()}")
+        uid = uuid.uuid4()
+        self.get_logger().info(f"START\tPID {threading.get_ident()}\tUID {uid}\tTIMESTAMP {time.time_ns()}")
         image = self.fetch_image()
-        self.get_logger().info(f"AFTERFETCH\tPID {threading.get_ident()}\tTIMESTAMP {time.time_ns()}")
+        self.get_logger().info(f"AFTERFETCH\tPID {threading.get_ident()}\tUID {uid}\tTIMESTAMP {time.time_ns()}")
         
         # Hand recognition
         self.hand_over_space = self._detect_hand(image)
         self.send_hand_recognition_state()
-        self.get_logger().info(f"AFTERHIL\tPID {threading.get_ident()}\tTIMESTAMP {time.time_ns()}")
+        self.get_logger().info(f"AFTERHIL\tPID {threading.get_ident()}\tUID {uid}\tTIMESTAMP {time.time_ns()}")
         
         #self.get_logger().info("Next image received")
         results = []
@@ -193,6 +192,6 @@ class CameraDriver(Node):
         elif ordered_results == {'BLUE', 'RED'}: #Always in this order because it's a set
             self.current_state = SpaceState.BOTHPLACED
         
-        self.send_startspace_state()
+        self.send_startspace_state(uid)
         
         

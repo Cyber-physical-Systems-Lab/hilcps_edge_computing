@@ -94,21 +94,21 @@ class MyCobotHiLController(Node):
             SpaceState,
             WORKSPACE,
             self.workspace_on_receive,
-            10
+            1
         )
 
         self.startspace_hand_subscription = self.create_subscription(
             Bool,
             STARTSPACE + HAND_SUFFIX,
             self.startspace_hand_on_receive,
-            10
+            1
         )
 
         self.workspace_hand_subscription = self.create_subscription(
             Bool,
             WORKSPACE + HAND_SUFFIX,
             self.workspace_hand_on_receive,
-            10
+            1
         )
 
         # Actions
@@ -149,7 +149,7 @@ class MyCobotHiLController(Node):
 
             
     def workspace_on_receive(self, msg):
-        self.get_logger().info(f"WORKSPACE\tPID {threading.get_ident()}\tTIMESTAMP {time.time_ns()}")
+        self.get_logger().info(f"WORKSPACE\tPID {threading.get_ident()}\tUID {msg.unique_id}\tTIMESTAMP {time.time_ns()}")
         # if robot or human interaction is happening at the space, don't update
         if self.actuator_control["mycobot"] != self.mycobot_states[1]\
         or self.workspace_control["hil_state"]:
@@ -192,11 +192,13 @@ class MyCobotHiLController(Node):
 
 
     def startspace_hand_on_receive(self, msg):
-        self.get_logger().info(f"STARTSPACEHAND\tPID {threading.get_ident()}\tTIMESTAMP {time.time_ns()}")
+        #uid = msg.unique_id
+        #self.get_logger().info(f"STARTSPACEHAND\tPID {threading.get_ident()}\tTUID {uid}\tIMESTAMP {time.time_ns()}")
         self.startspace_control["hil_state"] = msg.data
 
     def workspace_hand_on_receive(self, msg):
-        self.get_logger().info(f"WORKSPACEHAND\tPID {threading.get_ident()}\tTIMESTAMP {time.time_ns()}")
+        #uid = msg.unique_id
+        #self.get_logger().info(f"WORKSPACEHAND\tPID {threading.get_ident()}\tUID {uid}\tTIMESTAMP {time.time_ns()}")
         self.workspace_control["hil_state"] = msg.data    
 
     def trigger_startspace_action(self):
