@@ -7,6 +7,7 @@ import numpy as np
 from std_msgs.msg import Bool
 from pyzbar.pyzbar import decode
 import time
+import uuid
 import threading
 
 HAND_RECOGNITION_TOPIC_SUFFIX = "_hand"
@@ -38,22 +39,24 @@ class CameraDriver(Node):
         self.spacestate_publisher = self.create_publisher(SpaceState, area, 10) # type, topic name, queue size
         self.hand_recognition_publisher = self.create_publisher(Bool, area + HAND_RECOGNITION_TOPIC_SUFFIX, 10)
         self.state_changer = self.create_timer(0.1, self.measure_board_state)
-        self.get_logger().info(name + ": Camera started transmitting")
+        #self.get_logger().info(name + ": Camera started transmitting")
 
     # Publishers
-    def send_startspace_state(self):
+    def send_startspace_state(self, uid):
         msg = SpaceState()
         msg.state = self.current_state
+        msg.unique_id = str(uid)
+        self.get_logger().info(f"FINISH\tPID {threading.get_ident()}\tUID {uid}\tTIMESTAMP {time.time_ns()}")
 
         self.spacestate_publisher.publish(msg)
-        self.get_logger().info(f"State message published: {str(msg)}")
+        #self.get_logger().info(f"State message published: {str(msg)}")
 
     def send_hand_recognition_state(self):
         msg = Bool()
         msg.data = self.hand_over_space
 
         self.hand_recognition_publisher.publish(msg)
-        self.get_logger().info(f"Hand over space published: {str(msg)}")
+        #self.get_logger().info(f"Hand over space published: {str(msg)}")
 
     # Space state recognition
     def _find_work_area(self, image):
@@ -139,20 +142,22 @@ class CameraDriver(Node):
         try:
             return self.camera.fetch_image()
         except Exception as e:
-            self.get_logger().error(str(e))
-            self.get_logger().warn("Mocked image sent!")
+            #self.get_logger().error(str(e))
+            #self.get_logger().warn("Mocked image sent!")
             return cv2.imread("resource/cardboard_mock.jpg")
 
     def measure_board_state(self):
-        #self.get_logger().info(f"{threading.get_ident()}")
-        #self.get_logger().info(f"{time.time_ns()}")
+        uid = uuid.uuid4()
+        self.get_logger().info(f"START\tPID {threading.get_ident()}\tUID {uid}\tTIMESTAMP {time.time_ns()}")
         image = self.fetch_image()
-
+        self.get_logger().info(f"AFTERFETCH\tPID {threading.get_ident()}\tUID {uid}\tTIMESTAMP {time.time_ns()}")
+        
         # Hand recognition
         self.hand_over_space = self._detect_hand(image)
         self.send_hand_recognition_state()
+        self.get_logger().info(f"AFTERHIL\tPID {threading.get_ident()}\tUID {uid}\tTIMESTAMP {time.time_ns()}")
         
-        self.get_logger().info("Next image received")
+        #self.get_logger().info("Next image received")
         results = []
         try:
             largest_rect = self._find_work_area(image)
@@ -166,16 +171,16 @@ class CameraDriver(Node):
                 if color_included:
                     results.append(color)
 
-            for color in results:
-                self.get_logger().info(f"Object ({color}) detected")
+            #for color in results:
+                #self.get_logger().info(f"Object ({color}) detected")
             ordered_results = set(results)
         
         except Exception as e:
-            self.get_logger().error(str(e))
+            #self.get_logger().error(str(e))
             ordered_results = "error"
 
         
-        self.get_logger().info(str(results))
+        #self.get_logger().info(str(results))
         if ordered_results == "error":
             self.current_state = SpaceState.ERROR
         elif not ordered_results:  # empty
@@ -187,4 +192,6 @@ class CameraDriver(Node):
         elif ordered_results == {'BLUE', 'RED'}: #Always in this order because it's a set
             self.current_state = SpaceState.BOTHPLACED
         
-        self.send_startspace_state()
+        self.send_startspace_state(uid)
+        
+        

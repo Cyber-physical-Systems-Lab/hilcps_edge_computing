@@ -6,6 +6,8 @@ from camera_controller.ip_server_view_fetcher import IPServerViewFetcher
 import rclpy
 from signal import signal, SIGINT
 import sys
+from signal import signal, SIGINT
+import sys
 
 STARTSPACE_TOPIC = "/spinningfactory/startspace_state"
 WORKSPACE_TOPIC = "/spinningfactory/workspace_state"
@@ -32,10 +34,11 @@ def start_ip_server_camera(args=None):
 def start_usb_camera(args=None):
     signal(SIGINT, signal_handler)
     rclpy.init(args=args)
-    camera = USBViewFetcher(cam_port=2)
+    camera = USBViewFetcher(cam_port=0)
     camera_node = CameraDriver("startspace_USB", STARTSPACE_TOPIC, camera)
     executor = MultiThreadedExecutor()
     executor.add_node(camera_node)
+    signal(SIGINT, signal_handler)
     executor.spin()
     rclpy.shutdown()
 
@@ -59,11 +62,11 @@ def work_ip_server_camera(args=None):
 def work_usb_camera(args=None):
     signal(SIGINT, signal_handler)
     rclpy.init(args=args)
-    camera = USBViewFetcher(cam_port=2)
+    camera = USBViewFetcher(cam_port=0)
     camera_node = CameraDriver("workspace_USB", WORKSPACE_TOPIC, camera)
+    signal(SIGINT, signal_handler)
     rclpy.spin(camera_node)
     rclpy.shutdown()
-
 
 
 def signal_handler(sig, frame):
