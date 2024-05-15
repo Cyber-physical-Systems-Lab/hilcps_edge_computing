@@ -4,6 +4,8 @@ from rclpy.node import Node
 from rclpy.action import ActionServer
 from enum import Enum
 from std_msgs.msg import Bool
+import os
+import time
 
 STARTSPACE = "/spinningfactory/startspace_state"
 WORKSPACE = "/spinningfactory/workspace_state"
@@ -24,28 +26,28 @@ class HiLDriver(Node):
         self.workspace_hil_state = False
         
         super().__init__("hildriver")
-        self._action_server = ActionServer(
+        self._action_server1 = ActionServer(
             self,
             MoveHand,
             'handleStartSpaceHiL',
             self.execute_handle_startspace,
         )
 
-        self._action_server = ActionServer(
+        self._action_server2 = ActionServer(
             self,
             MoveHand,
             'handleStartToEndSpaceHiL',
             self.execute_handle_start_to_endspace,
         )
 
-        self._action_server = ActionServer(
+        self._action_server3 = ActionServer(
             self,
             MoveHand,
             'handleWorkSpaceHiL',
             self.execute_handle_workspace,
         )
 
-        self._action_server = ActionServer(
+        self._action_server4 = ActionServer(
             self,
             MoveHand,
             'handleAssembleHiL',
@@ -69,88 +71,113 @@ class HiLDriver(Node):
         self.publisher_ = self.create_publisher(UInt8, '/spinningfactory/hilstate', 10)
         self.timer = self.create_timer(0.5, self.publish_state)
         self.current_task = HILSTATE.IDLE
-
-        self.get_logger().info("HiL driver has started.")
         
 
     def execute_handle_startspace(self, goal_handle):
 
         self.get_logger().info(str(goal_handle) + " action received, hil startspace started")
         self.current_task = HILSTATE.HANDLESTART
-        self.get_logger().info(str(goal_handle)  + " - waiting for intention flagging")
+        #self.get_logger().info(str(goal_handle)  + " - waiting for intention flagging")
         
         treshold = ACTION_TRESHOLD
-        while treshold < 0:
+        while treshold > 0:
             if self.startspace_hil_state:
                 treshold -=1
         
-        self.get_logger().info(str(goal_handle) + " - HiL in progress, waiting for finishing signal")
+        #self.get_logger().info(str(goal_handle) + " - HiL in progress, waiting for finishing signal")
         treshold = ACTION_TRESHOLD
-        while treshold < 0:
+        while treshold > 0:
             if self.workspace_hil_state:
                 treshold -=1
         
-        self.get_logger().info(str(goal_handle) + " - HiL finished")
+        goal_handle.succeed()
+        result = MoveHand.Result()
+        result.finished = True
+        #self.get_logger().info(str(goal_handle) + " - HiL finished")
         self.current_task = HILSTATE.IDLE
-        
+        return result
         
 
     def execute_handle_start_to_endspace(self, goal_handle):
         self.get_logger().info(str(goal_handle) + " action received, hil start_to_end started")
         self.current_task = HILSTATE.HANDLESTARTTOEND
-        self.get_logger().info(str(goal_handle)  + " - waiting for intention flagging")
+        #self.get_logger().info(str(goal_handle)  + " - waiting for intention flagging")
         
         treshold = ACTION_TRESHOLD
-        while treshold < 0:
+        while treshold > 0:
             if self.startspace_hil_state:
                 treshold -=1
         
-        self.get_logger().info(str(goal_handle) + " - HiL in progress, waiting for finishing signal")
+        #self.get_logger().info(str(goal_handle) + " - HiL in progress, waiting for finishing signal")
         treshold = ACTION_TRESHOLD
-        while treshold < 0:
+        while treshold > 0:
             if self.workspace_hil_state:
                 treshold -=1
         
-        self.get_logger().info(str(goal_handle) + " - HiL finished")
+        #self.get_logger().info(str(goal_handle) + " - HiL finished")
+        goal_handle.succeed()
+        result = MoveHand.Result()
+        result.finished = True
+        #self.get_logger().info(str(goal_handle) + " - HiL finished")
         self.current_task = HILSTATE.IDLE
+        return result
 
     def execute_handle_workspace(self, goal_handle):
         self.get_logger().info(str(goal_handle) + " action received, hil workspace started")
         self.current_task = HILSTATE.HANDLEWORK
-        self.get_logger().info(str(goal_handle)  + " - waiting for intention flagging")
+        #self.get_logger().info(str(goal_handle)  + " - waiting for intention flagging")
         
         treshold = ACTION_TRESHOLD
-        while treshold < 0:
+        while treshold > 0:
             if self.workspace_hil_state:
                 treshold -=1
         
-        self.get_logger().info(str(goal_handle) + " - HiL in progress, waiting for finishing signal")
+        #self.get_logger().info(str(goal_handle) + " - HiL in progress, waiting for finishing signal")
         treshold = ACTION_TRESHOLD
-        while treshold < 0:
+        while treshold > 0:
             if self.workspace_hil_state:
                 treshold -=1
         
-        self.get_logger().info(str(goal_handle) + " - HiL finished")
+        #self.get_logger().info(str(goal_handle) + " - HiL finished")
+        goal_handle.succeed()
+        result = MoveHand.Result()
+        result.finished = True
+        #self.get_logger().info(str(goal_handle) + " - HiL finished")
         self.current_task = HILSTATE.IDLE
+        return result
+
+    def wait_for_intention(self, space, expected):
+        
+        treshold = ACTION_TRESHOLD
+        while treshold > 0:
+            if space == STARTSPACE and self.startspace_hil_state == expected\
+                or space == WORKSPACE and self.workspace_hil_state == expected:
+                treshold -=1
+             
+        
 
     def execute_assemble(self, goal_handle):
-        self.get_logger().info(str(goal_handle) + " action received, hil assemble started")
+        self.get_logger().info(f"ACTION_INIT\tPID {os.getpid() }\tUID {goal_handle.request.unique_id}\tTIMESTAMP {time.time_ns()}")
+
+        #self.get_logger().info(str(goal_handle) + " action received, hil assemble started")
         self.current_task = HILSTATE.ASSEMBLE
-        self.get_logger().info(str(goal_handle)  + " - waiting for intention flagging")
+        #self.get_logger().info(str(goal_handle)  + " - waiting for intention flagging")
         
-        treshold = ACTION_TRESHOLD
-        while treshold < 0:
-            if self.workspace_hil_state:
-                treshold -=1
-        
-        self.get_logger().info(str(goal_handle) + " - HiL in progress, waiting for finishing signal")
-        treshold = ACTION_TRESHOLD
-        while treshold < 0:
-            if self.workspace_hil_state:
-                treshold -=1
-        
-        self.get_logger().info(str(goal_handle) + " - HiL finished")
+        self.wait_for_intention(WORKSPACE, True)
+        self.get_logger().info(f"ACTION_INTENTION_CAPTURE\tPID {os.getpid() }\tUID {goal_handle.request.unique_id}\tTIMESTAMP {time.time_ns()}")
+
+        self.wait_for_intention(WORKSPACE, False)
+        self.get_logger().info(f"ACTION_START\tPID {os.getpid() }\tUID {goal_handle.request.unique_id}\tTIMESTAMP {time.time_ns()}")
+        #self.get_logger().info(str(goal_handle) + " - HiL in progress, waiting for finishing signal")
+        self.wait_for_intention(WORKSPACE, True)
+        #self.get_logger().info(str(goal_handle) + " - HiL finished")
+        goal_handle.succeed()
+        result = MoveHand.Result()
+        result.finished = True
+        #self.get_logger().info(str(goal_handle) + " - HiL finished")
         self.current_task = HILSTATE.IDLE
+        self.get_logger().info(f"ACTION_FINISH\tPID {os.getpid() }\tUID {goal_handle.request.unique_id}\tTIMESTAMP {time.time_ns()}")
+        return result
 
     def startspace_hand_on_receive(self, msg):
         self.startspace_hil_state = msg.data

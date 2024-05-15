@@ -2,6 +2,7 @@
 # message that determines wether a given space
 # contains an item.
 
+string unique_id
 ---
 bool finished
 ---

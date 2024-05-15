@@ -64,8 +64,10 @@ def work_usb_camera(args=None):
     rclpy.init(args=args)
     camera = USBViewFetcher(cam_port=0)
     camera_node = CameraDriver("workspace_USB", WORKSPACE_TOPIC, camera)
+    executor = MultiThreadedExecutor()
+    executor.add_node(camera_node)
     signal(SIGINT, signal_handler)
-    rclpy.spin(camera_node)
+    executor.spin()
     rclpy.shutdown()
 
 

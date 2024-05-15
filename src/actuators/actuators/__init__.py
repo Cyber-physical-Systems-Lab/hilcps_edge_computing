@@ -28,7 +28,7 @@ def start_driver(args=None):
     executor.spin()
     rclpy.shutdown()
 
-def start_hil(args=None):
+def start_hil_driver(args=None):
     signal(SIGINT, signal_handler)
     rclpy.init(args=args)
     driver_node = HiLDriver()

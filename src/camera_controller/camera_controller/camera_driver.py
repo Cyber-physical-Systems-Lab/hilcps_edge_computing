@@ -8,7 +8,7 @@ from std_msgs.msg import Bool
 from pyzbar.pyzbar import decode
 import time
 import uuid
-import threading
+import os
 
 HAND_RECOGNITION_TOPIC_SUFFIX = "_hand"
 COLOR_RANGES = {
@@ -38,7 +38,7 @@ class CameraDriver(Node):
 
         self.spacestate_publisher = self.create_publisher(SpaceState, area, 10) # type, topic name, queue size
         self.hand_recognition_publisher = self.create_publisher(Bool, area + HAND_RECOGNITION_TOPIC_SUFFIX, 10)
-        self.state_changer = self.create_timer(0.1, self.measure_board_state)
+        self.state_changer = self.create_timer(0.001, self.measure_board_state)
         #self.get_logger().info(name + ": Camera started transmitting")
 
     # Publishers
@@ -46,16 +46,16 @@ class CameraDriver(Node):
         msg = SpaceState()
         msg.state = self.current_state
         msg.unique_id = str(uid)
-        self.get_logger().info(f"FINISH\tPID {threading.get_ident()}\tUID {uid}\tTIMESTAMP {time.time_ns()}")
-
         self.spacestate_publisher.publish(msg)
+        self.get_logger().info(f"FINISH\tPID {os.getpid() }\tUID {uid}\tTIMESTAMP {time.time_ns()}")
         #self.get_logger().info(f"State message published: {str(msg)}")
 
-    def send_hand_recognition_state(self):
+    def send_hand_recognition_state(self, uid):
         msg = Bool()
         msg.data = self.hand_over_space
 
         self.hand_recognition_publisher.publish(msg)
+        self.get_logger().info(f"HAND\tPID {os.getpid() }\tUID {uid}\tTIMESTAMP {time.time_ns()}")
         #self.get_logger().info(f"Hand over space published: {str(msg)}")
 
     # Space state recognition
@@ -148,14 +148,14 @@ class CameraDriver(Node):
 
     def measure_board_state(self):
         uid = uuid.uuid4()
-        self.get_logger().info(f"START\tPID {threading.get_ident()}\tUID {uid}\tTIMESTAMP {time.time_ns()}")
+        self.get_logger().info(f"START\tPID {os.getpid() }\tUID {uid}\tTIMESTAMP {time.time_ns()}")
         image = self.fetch_image()
-        self.get_logger().info(f"AFTERFETCH\tPID {threading.get_ident()}\tUID {uid}\tTIMESTAMP {time.time_ns()}")
+        #self.get_logger().info(f"AFTERFETCH\tPID {os.getpid() }\tUID {uid}\tTIMESTAMP {time.time_ns()}")
         
         # Hand recognition
         self.hand_over_space = self._detect_hand(image)
-        self.send_hand_recognition_state()
-        self.get_logger().info(f"AFTERHIL\tPID {threading.get_ident()}\tUID {uid}\tTIMESTAMP {time.time_ns()}")
+        self.send_hand_recognition_state(uid)
+        #self.get_logger().info(f"AFTERHIL\tPID {os.getpid() }\tUID {uid}\tTIMESTAMP {time.time_ns()}")
         
         #self.get_logger().info("Next image received")
         results = []
