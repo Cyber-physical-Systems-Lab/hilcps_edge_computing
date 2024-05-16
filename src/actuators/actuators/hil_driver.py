@@ -157,13 +157,12 @@ class HiLDriver(Node):
         
 
     def execute_assemble(self, goal_handle):
-        self.get_logger().info(f"ACTION_INIT\tPID {os.getpid() }\tUID {goal_handle.request.unique_id}\tTIMESTAMP {time.time_ns()}")
-
+        
         #self.get_logger().info(str(goal_handle) + " action received, hil assemble started")
         self.current_task = HILSTATE.ASSEMBLE
         #self.get_logger().info(str(goal_handle)  + " - waiting for intention flagging")
         
-        self.wait_for_intention(WORKSPACE, True)
+        #self.wait_for_intention(WORKSPACE, True)
         self.get_logger().info(f"ACTION_INTENTION_CAPTURE\tPID {os.getpid() }\tUID {goal_handle.request.unique_id}\tTIMESTAMP {time.time_ns()}")
 
         self.wait_for_intention(WORKSPACE, False)

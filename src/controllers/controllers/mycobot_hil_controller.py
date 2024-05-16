@@ -17,6 +17,7 @@ STARTSPACE = "/spinningfactory/startspace_state"
 WORKSPACE = "/spinningfactory/workspace_state"
 HAND_SUFFIX = "_hand"
 UPPER_TRESHOLD = 5
+ACTION_TRESHOLD = 10
 class MyCobotHiLController(Node):
     
 
@@ -24,6 +25,7 @@ class MyCobotHiLController(Node):
         super().__init__('mycobot_hil_controller')
         self.STARTSPACE_UID = "-1"
         self.WORKSPACE_UID = "-1"
+        self.assemble_action_in_progress = False
         self.timer_ = self.create_timer(0.5, self.actuate)
         self.mycobot_driver_states = {
             0 : "IDLE",
@@ -199,7 +201,10 @@ class MyCobotHiLController(Node):
         self.actuator_control["mycobot"] = self.mycobot_driver_states[4]#msg.data]
 
     def hilstate_on_receive(self, msg):
-        self.actuator_control["human"] = self.hil_driver_states[msg.data]
+        if self.assemble_action_in_progress:
+            self.actuator_control["human"] = self.hil_driver_states[4]
+        else:
+            self.actuator_control["human"] = self.hil_driver_states[msg.data]
 
 
     def startspace_hand_on_receive(self, msg):
@@ -237,9 +242,17 @@ class MyCobotHiLController(Node):
         # don't request if human is not available
         if self.actuator_control["human"] != self.hil_driver_states[0]:
             return
+        self.assemble_action_in_progress = True
         goal_msg = MoveHand.Goal()
         goal_msg.unique_id = self.WORKSPACE_UID
+        self.get_logger().info(f"ACTION_INIT(C)\tPID {os.getpid() }\tUID {self.WORKSPACE_UID}\tTIMESTAMP {time.time_ns()}")
+        treshold = ACTION_TRESHOLD
+        while treshold > 0:
+            if self.workspace_hil_state:
+                treshold -=1
+
         future = self.hil_assemble_action.send_goal_async(goal_msg)
+        self.assemble_action_in_progress = False
     
     def trigger_mycobot_backoff(self):
         if self.actuator_control["mycobot"] == self.mycobot_driver_states[0]:
